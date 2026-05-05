@@ -1,77 +1,145 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Dimensions,
+  ImageBackground,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { supabase } from "../lib/supabase";
 
-//COMPONENTES REUTILIZAIBLES
-function TarjetaPerfil(props) {
-  return (
-    <View style={styles.card}>
-      <Text>{props.nombre}</Text>
-      <Text>{props.ciudad}</Text>
-      <Text>{props.programa}</Text>
-    </View>
-  );
-}
+const { width, height } = Dimensions.get("window");
 
 export default function Home() {
   const router = useRouter();
-  const [estado, setEstado] = useState("Disponible");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  const cambiarEstado = () => {
-    setEstado((prev) =>
-      prev === "Disponible" ? "No Disponible" : "Disponible",
-    );
+  useEffect(() => {
+    verificarSesion();
+    obtenerUsuario();
+  }, []);
+
+  const verificarSesion = async () => {
+    const { data } = await supabase.auth.getSession();
+
+    if (!data.session) {
+      router.replace("/login");
+    }
+  };
+
+  const obtenerUsuario = async () => {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      setUserEmail(data.user.email);
+    }
+  };
+
+  const cerrarSesion = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      Alert.alert("Error", error.message);
+    } else {
+      router.replace("/login");
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Perfil Académico</Text>
+      <StatusBar barStyle="light-content" />
 
-      <TarjetaPerfil
-        nombre="Andrea Benavides"
-        ciudad="Ciudad: Pasto"
-        programa="Ingeniería de Sistemas"
-      />
-
-      <Text style={styles.estado}>Estado actual: {estado}</Text>
-
-      <Pressable style={styles.botonSecundario} onPress={cambiarEstado}>
-        <Text style={styles.botonTexto}>Cambiar estado</Text>
-      </Pressable>
-
-      {/* Navegación a Detalle */}
-      <Pressable
-        style={styles.botonPrincipal}
-        onPress={() =>
-          router.push({
-            pathname: "/detalle",
-            params: {
-              nombre: "Cristhian - Jonathan",
-              ciudad: "Pasto",
-              programa: "Ingeniería de Sistemas",
-              estado: estado,
-            },
-          })
-        }
+      <ImageBackground
+        source={{
+          uri: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070",
+        }}
+        style={styles.background}
       >
-        <Text style={styles.botonTexto}>Ir a Detalle</Text>
-      </Pressable>
+        <LinearGradient
+          colors={["rgba(0,0,0,0.7)", "rgba(0,0,0,0.9)"]}
+          style={styles.overlay}
+        >
+          <View style={styles.content}>
+            {/* Info del usuario logueado */}
+            {userEmail && (
+              <View style={styles.userInfo}>
+                <Text style={styles.userEmail}>👤 {userEmail}</Text>
+              </View>
+            )}
 
-      {/* Navegación a Historial Académico */}
-      <Pressable
-        style={styles.botonHistorial}
-        onPress={() => router.push("/historial")}
-      >
-        <Text style={styles.botonTexto}>📋 Historial Académico</Text>
-      </Pressable>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoIcon}>🎓</Text>
+            </View>
 
-      {/* Navegación a Configuración */}
-      <Pressable
-        style={styles.botonConfiguracion}
-        onPress={() => router.push("/configuracion")}
-      >
-        <Text style={styles.botonTexto}>⚙️ Configuración</Text>
-      </Pressable>
+            <Text style={styles.titulo}>Sistema de Gestión</Text>
+            <Text style={styles.subtitulo}>Estudiantil</Text>
+
+            <View style={styles.divider} />
+
+            <Text style={styles.descripcion}>
+              Registra y administra la información{"\n"}
+              de tus estudiantes de manera fácil y rápida
+            </Text>
+
+            <View style={styles.botonesContainer}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.botonPrimario,
+                  pressed && styles.botonPressed,
+                ]}
+                onPress={() => router.push("/formulario")}
+              >
+                <Text style={styles.botonPrimarioTexto}>
+                  📝 Registrar Estudiante
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.botonSecundario,
+                  pressed && styles.botonPressed,
+                ]}
+                onPress={() => router.push("/lista")}
+              >
+                <Text style={styles.botonSecundarioTexto}>
+                  📋 Ver Lista de Estudiantes
+                </Text>
+              </Pressable>
+
+              {/* Botón de cerrar sesión */}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.botonSalir,
+                  pressed && styles.botonPressed,
+                ]}
+                onPress={cerrarSesion}
+              >
+                <Text style={styles.botonSalirTexto}>🚪 Cerrar sesión</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.statsContainer}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>10+</Text>
+                <Text style={styles.statLabel}>Programas</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>24/7</Text>
+                <Text style={styles.statLabel}>Disponible</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>100%</Text>
+                <Text style={styles.statLabel}>Seguro</Text>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
+      </ImageBackground>
     </View>
   );
 }
@@ -79,242 +147,146 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f6f8",
-    padding: 20,
+  },
+  background: {
+    width: width,
+    height: height,
+  },
+  overlay: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
     justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
   },
-
+  userInfo: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  userEmail: {
+    color: "white",
+    fontSize: 12,
+  },
+  logoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 32,
+  },
+  logoIcon: {
+    fontSize: 48,
+  },
   titulo: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#111827",
-    marginBottom: 20,
+    fontSize: 32,
+    fontWeight: "300",
+    color: "white",
     textAlign: "center",
+    letterSpacing: 1,
   },
-
-  card: {
-    backgroundColor: "white",
+  subtitulo: {
+    fontSize: 42,
+    fontWeight: "bold",
+    color: "white",
+    textAlign: "center",
+    marginTop: -5,
+  },
+  divider: {
+    width: 60,
+    height: 4,
+    backgroundColor: "#4f46e5",
+    borderRadius: 2,
+    marginVertical: 24,
+  },
+  descripcion: {
+    fontSize: 16,
+    color: "rgba(255,255,255,0.8)",
+    textAlign: "center",
+    lineHeight: 24,
+    marginBottom: 40,
+  },
+  botonesContainer: {
+    width: "100%",
+    gap: 16,
+    marginBottom: 48,
+  },
+  botonPrimario: {
+    backgroundColor: "#4f46e5",
+    paddingVertical: 16,
     borderRadius: 16,
-    padding: 18,
-    marginBottom: 20,
-    elevation: 4,
+    alignItems: "center",
+    shadowColor: "#4f46e5",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
-
-  nombre: {
+  botonPrimarioTexto: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  botonSecundario: {
+    backgroundColor: "rgba(255,255,255,0.15)",
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+  },
+  botonSecundarioTexto: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  botonSalir: {
+    backgroundColor: "#b91c1c",
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  botonSalirTexto: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  botonPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
+  },
+  statsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 20,
+  },
+  statItem: {
+    alignItems: "center",
+  },
+  statNumber: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#111827",
-    marginBottom: 8,
-  },
-
-  info: {
-    fontSize: 15,
-    color: "#4b5563",
-    marginBottom: 4,
-  },
-
-  estado: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-
-  botonPrincipal: {
-    backgroundColor: "#111827",
-    paddingVertical: 13,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-
-  botonSecundario: {
-    backgroundColor: "#6b7280",
-    paddingVertical: 13,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-
-  botonHistorial: {
-    backgroundColor: "#1d4ed8",
-    paddingVertical: 13,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-
-  botonContacto: {
-    backgroundColor: "#0077b5",
-    paddingVertical: 13,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-
-  botonConfiguracion: {
-    backgroundColor: "#6b7280",
-    paddingVertical: 13,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-
-  botonTexto: {
     color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.6)",
+    marginTop: 4,
+  },
+  statDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: "rgba(255,255,255,0.2)",
   },
 });
-
-/*
-import { useRoute } from "@react-navigation/native";
-import React, {useState} from "react";
-import {View, Text, Pressable, StyleSheet} from "react-native";
-import {NavigationContainer} from "@react-navigation/native";
-import {createNativeStackNavigator} from "@react-navigation/native-stack";
-
-const Stack = createNativeStackNavigator();
-
-//COMPONENTS REUTILIZAVEIS
-function TarjetaPerfil(props) {
-  return (
-    <View style={Styles.card}>
-      <Text style={Styles.nombre}>Nombre: {props.nombre} </Text>
-      <Text style={Styles.info}>Ciudad:  {props.ciudad} </Text>
-      <Text style={Styles.info}>Programa: {props.programa} </Text>
-    </View>
-  );
-}
-
-//SCREEN 1
-function InicioScreen({navigation}) {
-  const [estado, setEstado] = useState ("Disponible");
-  const cambiarEstado = () => {
-    setEstado((prev) => prev === "Disponible" ? "No Disponible" : "Disponible");
-  };
-  return (
-    <View style={Styles.container}>
-      <Text style={Styles.titulo}>Perfil Académico</Text>
-
-      <TarjetaPerfil
-        nombre="Andrea Benavides"
-        ciudad="Pasto"
-        programa="Ingeniería de Sistemas"
-      />
-
-      <Text style={Styles.estado}>Estado actual: {estado}</Text>
-
-      <Pressable style={Styles.botonSecundario} onPress={cambiarEstado}>
-        <Text style={Styles.botonTexto}>Cambiar estado</Text>
-      </Pressable>
-
-      <Pressable
-        style={Styles.botonPrincipal}
-        onPress={() =>
-          navigation.navigate("Detalle", {
-            nombre: "Andrea Benavides",
-            ciudad: "Pasto",
-            programa: "Ingeniería de Sistemas",
-            estado: estado,
-          })
-        }
-      >
-        <Text style={Styles.botonTexto}>Ver detalle</Text>
-      </Pressable>
-    </View>
-  );
-}
-
-//SCREEN 2
-function DetalleScreen({route, navigation}) {
-  const {nombre, ciudad, programa, estado} = route.params;
-  return (
-    <View style={Styles.container}>
-      <Text style={Styles.nombre}>Nombre: {nombre}</Text>
-      <Text style={Styles.info}>Ciudad: {ciudad}</Text>
-      <Text style={Styles.info}>Programa: {programa}</Text>
-
-      <TarjetaPerfil
-        nombre={nombre}
-        ciudad={ciudad}
-        programa={programa}a
-      />
-
-      <Text style={Styles.estado}>Estado: {estado}</Text>
-    </View>
-  );
-}
-
-const Styles = StyleSheet.create(
-  {
-    container: {
-    flex: 1,
-    backgroundColor: "#f4f6f8",
-    padding: 20,
-    justifyContent: "center",
-  },
-
-  titulo: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#111827",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-
-  card: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 20,
-    elevation: 4,
-  },
-
-  nombre: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111827",
-    marginBottom: 8,
-  },
-
-  info: {
-    fontSize: 15,
-    color: "#4b5563",
-    marginBottom: 4,
-  },
-
-  estado: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-
-  botonPrincipal: {
-    backgroundColor: "#111827",
-    paddingVertical: 13,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-
-  botonSecundario: {
-    backgroundColor: "#6b7280",
-    paddingVertical: 13,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-
-  botonTexto: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-
-  }
-  
-);
-
-*/
