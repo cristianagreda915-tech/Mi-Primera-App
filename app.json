@@ -20,7 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.MiPrimeraApp"
+      "package": "com.cristhianagreda.miprimeraapp"
     },
     "web": {
       "output": "static",
@@ -45,6 +45,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0ff17b35-d994-45fb-b2e8-df1bb77ba194"
+      }
     }
   }
 }

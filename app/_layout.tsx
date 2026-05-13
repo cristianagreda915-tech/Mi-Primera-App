@@ -28,7 +28,7 @@ export default function Layout() {
         name="index"
         options={{
           title: "Inicio",
-          headerShown: false, // Oculta el header en la pantalla de inicio
+          headerShown: false,
         }}
       />
 
@@ -51,6 +51,23 @@ export default function Layout() {
         name="detalle"
         options={{
           title: "Detalle del Registro",
+        }}
+      />
+
+      {/* NUEVAS PANTALLAS */}
+      <Stack.Screen
+        name="api"
+        options={{
+          title: "Usuarios API",
+          headerShown: true,
+        }}
+      />
+
+      <Stack.Screen
+        name="usuarioDetalle"
+        options={{
+          title: "Detalle Usuario",
+          headerShown: true,
         }}
       />
     </Stack>

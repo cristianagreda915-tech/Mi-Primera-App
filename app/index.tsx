@@ -109,6 +109,17 @@ export default function Home() {
                 </Text>
               </Pressable>
 
+              {/* Botón para consumir API REST */}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.botonApi,
+                  pressed && styles.botonPressed,
+                ]}
+                onPress={() => router.push("/api")}
+              >
+                <Text style={styles.botonApiTexto}>🌐 Consumir API Externa</Text>
+              </Pressable>
+
               {/* Botón de cerrar sesión */}
               <Pressable
                 style={({ pressed }) => [
@@ -247,6 +258,22 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "500",
+  },
+  botonApi: {
+    backgroundColor: "#059669",
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: "center",
+    shadowColor: "#059669",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  botonApiTexto: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   botonSalir: {
     backgroundColor: "#b91c1c",
